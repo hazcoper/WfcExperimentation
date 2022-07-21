@@ -57,6 +57,8 @@ class Display():
         # cv2.imwrite("subway.png", self.output)
 
     def save(self, filename):
+        self.output[np.all(self.output == (0, 0, 255), axis=-1)] = (0,215,255)
+        
         cv2.imwrite(filename, self.output)
 
     def viz(self):
@@ -94,13 +96,13 @@ class Image():
             # 5: [[1,3,4,],[6],[6],[0,2,3,]],
             # 6: [[0,1,2,3,4,5,6],[0,1,2,3,4,5,6],[0,1,2,3,4,5,6],[0,1,2,3,4,5,6]],
         
-            0: [[6],[0,4,5],[6],[0,2,3]],
-            1: [[1,3,4],[6],[1,2,5],[6]],
+            0: [[0,2,5],[0,4,5],[0,3],[0,2,3,4]],
+            1: [[1,3,4],[1,2,3],[1,2,5],[1,3,4]],
             2: [[1,3,4],[0,4,5],[6],[6]],
             3: [[6],[0,4,5,],[1,2,5,],[6]],
             4: [[6],[6],[1,2,5,],[0,2,3,]],
             5: [[1,3,4,],[6],[6],[0,2,3,]],
-            6: [[0,1,2,3,4,5,6],[0,1,2,3,4,5,6],[0,1,2,3,4,5,6],[0,1,2,3,4,5,6]],
+            6: [[0,1,2,3,4,5],[0,1,2,3,4,5],[0,1,2,3,4,5],[0,1,2,3,4,5]],
         
 
         }
@@ -118,26 +120,53 @@ class Image():
 class Tile():
     def __init__(self, x, y, tileCount, name, imageID = None):
         self.pos = [x,y]
-        self.imageID = [x for x in range(tileCount)] if imageID == None else imageID
-        
-        self.name = name
+
+        self.imageID = None if imageID == None else imageID   # the id that the tile has collapse to
+        self.possibleList = [x for x in range(tileCount)] if imageID == None else []  # the possible ids that the tile can collapse to
         self.isCollapsed = False if imageID == None else True
 
+        self.name = name
+
+    # receives an id and collapses to the given id
+    def collapse(self, photoId):
+        
+        if photoId not in self.possibleList:
+            print(f"tile {self.name} cant collapse to {photoId} ({possibleId})")
+
+        self.possibleList = []
+        self.imageID = photoId
+        self.isCollapsed = True
+
+    def getPossibleList(self):
+        return self.possibleList
+    
+    # receives a possibleList and replaces the current possibleList
+    def updatePossibleList(self, possibleList):
+        self.possibleList = possibleList
+
+        return
+
+    # used when there is no other tile to collapse, will choose a random photoID from the possible list
+    # there are no tiles to collapse, so I will prepare this one to collapse
+    # but will not collapse it because its the loop that will collapse the tile
+    def prepareRandomCollapse(self):
+        self.possibleList = [random.choice(self.possibleList)]
+
     def __gt__(self, other):
-        amount1 = len(self.imageID) if type(self.imageID) == list else 0 
-        amount2 = len(other.imageID) if type(other.imageID) == list else 0  
+        amount1 = len(self.possibleList) if not self.isCollapsed else 0 
+        amount2 = len(other.possibleList) if not other.isCollapsed  else 0  
 
         return amount1 > amount2
 
     def __lt__(self, other):
-        amount1 = len(self.imageID) if type(self.imageID) == list else 0 
-        amount2 = len(other.imageID) if type(other.imageID) == list else 0  
+        amount1 = len(self.possibleList) if not self.isCollapsed else 0 
+        amount2 = len(other.possibleList) if not other.isCollapsed  else 0  
 
         return amount1 < amount2
 
     def __eq__(self, other):
-        amount1 = len(self.imageID) if type(self.imageID) == list else 0 
-        amount2 = len(other.imageID) if type(other.imageID) == list else 0  
+        amount1 = len(self.possibleList) if not self.isCollapsed else 0 
+        amount2 = len(other.possibleList) if not other.isCollapsed  else 0  
 
         return amount1 == amount2
     def __repr__(self):
@@ -169,12 +198,6 @@ class Wfc():
 
         self.Image = Image()
 
-        
-
-        # myTile = self.indexGetTile(4)
-        # print(self.getNeighbourTileList(myTile))
-        # exit()
-
 
         self.loop()
 
@@ -183,7 +206,7 @@ class Wfc():
         # collapse all the tiles in self.toCollapse
         # if its empty collapse random tile
         while self.doLoop:
-            for tile in self.toCollapse:
+            for tile in self.toCollapse:  # this is the list of tiles that are ready to be collapsed (have only one option for photoID)
                 print(f"Collapsing {tile}")
                 value = self.collapseTile(tile)
                 if value == -1:
@@ -195,8 +218,8 @@ class Wfc():
     # choose a random tile that has not been collapsed and force it to collapse
     def randomCollapse(self):
         choosenTile = random.choice(self.uncollapsedList)
-        choosenID = random.choice(choosenTile.imageID)
-        choosenTile.imageID = [choosenID]
+        choosenTile.prepareRandomCollapse()
+
         self.toCollapse.append(choosenTile)
 
     # will collapse the tile with the minimum amount of entropy
@@ -204,12 +227,12 @@ class Wfc():
         self.uncollapsedList.sort()
         print("UncollapsedList")
         for tile in self.uncollapsedList:
-            print("    ", tile, tile.imageID)
-        choosenTile = self.uncollapsedList[1]
-        choosenID = random.choice(choosenTile.imageID)
-        choosenTile.imageID = [choosenID]
+            print("    ", tile, len(tile.getPossibleList()))
+        choosenTile = self.uncollapsedList[0]
+
+        choosenTile.prepareRandomCollapse()
         self.toCollapse.append(choosenTile)
-        print("Finished minCollapse ", choosenTile, choosenID)
+
 
 
     
@@ -221,19 +244,19 @@ class Wfc():
         if tile.isCollapsed == True:
             return
         
-        if len(tile.imageID) != 1:
+        if len(tile.getPossibleList()) != 1:
             return
 
         # has passed all the tests and is ready to be collapsed
-
-        tile.imageID = tile.imageID[0]
-        tile.isCollapsed = True
+        tile.collapse(tile.getPossibleList()[0])
+        
         self.toCollapse.remove(tile)
         self.uncollapsedList.remove(tile)
 
         # update the neighbors
         for nTile in self.getNeighbourTileList(tile):
             if nTile[0].isCollapsed:
+                #ignore tiles that have already been collapse
                 continue
             self.updateTile(nTile[0], tile.imageID, nTile[1])
         
@@ -246,8 +269,8 @@ class Wfc():
     # receives a tile and the imageID that was attributed to one of its neighbour
     # will update the imageID of the received tile to account for the change
     def updateTile(self, tile, imageID, side):
-        tile.imageID = self.Image.getPossibleId(imageID, side)
-        if len(tile.imageID) == 1:
+        tile.updatePossibleList(self.Image.getPossibleId(imageID, side)) 
+        if len(tile.getPossibleList()) == 1:
             # means that it is ready to be collapsed, lets add to the list
             self.toCollapse.append(tile)
 
@@ -261,7 +284,7 @@ class Wfc():
                 if tile.isCollapsed:
                     print(tile.imageID, end=" ")
                 else:
-                    print(f"{len(tile.imageID)}.", end=" ")
+                    print(f"{len(tile.getPossibleList())}.", end=" ")
             print()
     
 
@@ -310,8 +333,8 @@ class Wfc():
 
 def run(name):
     global tileMatrix
-    SIZEX = 3 # size in tiles of the final imgae
-    SIZEY = 3 # size in tiles of the final image
+    SIZEX = 6 # size in tiles of the final imgae
+    SIZEY = 6 # size in tiles of the final image
     tileQuant = 7
     myDisplay = Display(100,100, 3,3, SIZEX, SIZEY)
     
@@ -320,10 +343,11 @@ def run(name):
     this = False 
     counter = 0 
     while this == False:
+        
+        
         try:
             myWfc = Wfc(SIZEX, SIZEY, tileQuant, name, counter)
             this = True
-        
         except:
             print(" Trying again ...")
 
@@ -336,18 +360,19 @@ def run(name):
     
     myDisplay.createOuput(tileMatrix)
     # myDisplay.viz()
-    myDisplay.save(f"output/final/{name}{counter}.png")
+    
+    myDisplay.save(f"output/final/{name}.png")
 
 if __name__ == '__main__':
 
     name = "hello"
 
-    run(name)
+    # run(name)
 
-    # threadNum = 1
-    # pool = Pool(threadNum)
-    # pool.map(run, list(range(threadNum)))
-    # pool.close()
+    threadNum = 500
+    pool = Pool(threadNum)
+    pool.map(run, list(range(threadNum)))
+    pool.close()
         
     # generate all the tiles, that can have whatever id
 

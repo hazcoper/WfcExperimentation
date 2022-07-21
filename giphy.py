@@ -15,5 +15,6 @@ filenames = sorted_alphanumeric(filenames)
 
 images = []
 for filename in filenames:
-    images.append(imageio.imread(filename))
+    for x in range(5):
+        images.append(imageio.imread(filename))
 imageio.mimsave(os.path.join(sourceFolder, "movie.gif"), images)
