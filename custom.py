@@ -110,11 +110,13 @@ class Tile():
     def collapse(self, photoId):
         
         if photoId not in self.possibleList:
-            print(f"tile {self.name} cant collapse to {photoId} ({possibleId})")
+            print(f"      tile {self.name} cant collapse to {photoId} ({possibleId})")
 
         self.possibleList = []
         self.imageID = photoId
         self.isCollapsed = True
+
+        print(f"      tile {self.name} has collapsed to {photoId}")
 
     def getPossibleList(self):
         return self.possibleList
@@ -129,9 +131,6 @@ class Tile():
     # there are no tiles to collapse, so I will prepare this one to collapse
     # but will not collapse it because its the loop that will collapse the tile
     def prepareRandomCollapse(self):
-        if len(self.possibleList) == 0:
-            self.possibleList = [6] #emergency, choosing the blank tile
-            
         self.possibleList = [random.choice(self.possibleList[:-1])]
 
     def __gt__(self, other):
@@ -180,7 +179,7 @@ class Wfc():
 
         self.Image = Image()
 
-
+        self.iterationCounter = 0
         self.loop()
 
 
@@ -188,14 +187,19 @@ class Wfc():
         # collapse all the tiles in self.toCollapse
         # if its empty collapse random tile
         while self.doLoop:
+            print(f"Starting iteration: {self.iterationCounter}")
+            print(f"  waiting to be collapsed: {len(self.toCollapse)}")
             for tile in self.toCollapse:  # this is the list of tiles that are ready to be collapsed (have only one option for photoID)
-                print(f"Collapsing {tile}")
+                print(f"  Collapsing {tile}")
                 value = self.collapseTile(tile)
                 if value == -1:
+                    print("Finished")
                     return
-                # self.printTileMatrix()
-            # self.randomCollapse()
+                   
+            print(f"  Doing minCollapse:")
             self.minCollapse()  # means that I have nothing left in the list to collapse
+            self.iterationCounter += 1
+            print()
 
     # choose a random tile that has not been collapsed and force it to collapse
     def randomCollapse(self):
@@ -206,7 +210,6 @@ class Wfc():
 
     # will collapse the tile with the minimum amount of entropy
     def minCollapse(self):
-        print("Doing min collapse")
         self.uncollapsedList.sort()
         
         # print("UncollapsedList")
@@ -228,26 +231,31 @@ class Wfc():
     # update the imageID, and update the neighbors
     def collapseTile(self, tile):
         if tile.isCollapsed == True:
+            print("    tile is already collapsed...")
             return
         
         if len(tile.getPossibleList()) != 1:
+            print("    tile has more than one possibility...")
             return
 
         # has passed all the tests and is ready to be collapsed
+        print("    telling tile to collapse")
         tile.collapse(tile.getPossibleList()[0])
         
         self.toCollapse.remove(tile)
         self.uncollapsedList.remove(tile)
 
         # update the neighbors
+        print(f"    checkig neighbours")
         for nTile in self.getNeighbourTileList(tile):
             if nTile[0].isCollapsed:
                 #ignore tiles that have already been collapse
                 continue
             self.updateTile(nTile[0], tile.imageID, nTile[1])
-        
+
         self.collapseCounter += 1
         if self.collapseCounter == self.SIZEX*self.SIZEY:
+            # end condition
             return -1
 
         
@@ -255,7 +263,9 @@ class Wfc():
     # receives a tile and the imageID that was attributed to one of its neighbour
     # will update the imageID of the received tile to account for the change
     def updateTile(self, tile, imageID, side):
+        
         tile.updatePossibleList(self.Image.getPossibleId(imageID, side)) 
+        print(f"      n: {tile} has now {tile.getPossibleList()}")
         if len(tile.getPossibleList()) == 1:
             # means that it is ready to be collapsed, lets add to the list
             self.toCollapse.append(tile)
