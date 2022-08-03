@@ -131,7 +131,7 @@ class Tile():
     # there are no tiles to collapse, so I will prepare this one to collapse
     # but will not collapse it because its the loop that will collapse the tile
     def prepareRandomCollapse(self):
-        self.possibleList = [random.choice(self.possibleList[:-1])]
+        self.possibleList = [random.choice(self.possibleList)]
 
     def __gt__(self, other):
         amount1 = len(self.possibleList) if not self.isCollapsed else 0 
