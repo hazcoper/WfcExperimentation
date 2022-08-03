@@ -196,9 +196,11 @@ class Wfc():
                 if value == -1:
                     print("Finished")
                     return
-                   
-            print(f"  Doing minCollapse:")
-            self.minCollapse()  # means that I have nothing left in the list to collapse
+            
+            if len(self.toCollapse) == 0:
+                print(f"  Doing minCollapse:")
+                self.minCollapse()  # means that I have nothing left in the list to collapse
+            
             self.iterationCounter += 1
             print()
 
