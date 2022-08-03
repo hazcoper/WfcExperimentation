@@ -38,7 +38,7 @@ class Display():
     def posShowPart(self):
         pass
 
-    def createOuput(self, matrix):
+    def createOutput(self, matrix):
         output_shape = (self.tile_height * self.sizeX, self.tile_width * self.sizeY, 3)
         self.output = np.zeros(output_shape, np.uint8)
 
@@ -78,7 +78,7 @@ class Image():
             3: [[6],[0,4,5,],[1,2,5,],[6]],
             4: [[6],[6],[1,2,5,],[0,2,3,]],
             5: [[1,3,4,],[6],[6],[0,2,3,]],
-            6: [[0,1,2,3,4,5],[0,1,2,3,4,5],[0,1,2,3,4,5],[0,1,2,3,4,5]],
+            6: [[0,1,2,3,4,5],[0,1,2,3,4,5],[0,1,2,3,4,5],[0,1,2,3,4,5]],  # this is blank
         
 
         }
@@ -100,6 +100,9 @@ class Tile():
         self.imageID = None if imageID == None else imageID   # the id that the tile has collapse to
         self.possibleList = [x for x in range(tileCount)] if imageID == None else []  # the possible ids that the tile can collapse to
         self.isCollapsed = False if imageID == None else True
+
+        # remove the blank tile, it will only be used in case of emergency
+        self.possibleList.remove(6)
 
         self.name = name
 
@@ -126,7 +129,10 @@ class Tile():
     # there are no tiles to collapse, so I will prepare this one to collapse
     # but will not collapse it because its the loop that will collapse the tile
     def prepareRandomCollapse(self):
-        self.possibleList = [random.choice(self.possibleList)]
+        if len(self.possibleList) == 0:
+            self.possibleList = [6] #emergency, choosing the blank tile
+            
+        self.possibleList = [random.choice(self.possibleList[:-1])]
 
     def __gt__(self, other):
         amount1 = len(self.possibleList) if not self.isCollapsed else 0 
@@ -187,9 +193,9 @@ class Wfc():
                 value = self.collapseTile(tile)
                 if value == -1:
                     return
-                self.printTileMatrix()
+                # self.printTileMatrix()
             # self.randomCollapse()
-            self.minCollapse()
+            self.minCollapse()  # means that I have nothing left in the list to collapse
 
     # choose a random tile that has not been collapsed and force it to collapse
     def randomCollapse(self):
@@ -200,14 +206,18 @@ class Wfc():
 
     # will collapse the tile with the minimum amount of entropy
     def minCollapse(self):
+        print("Doing min collapse")
         self.uncollapsedList.sort()
-        print("UncollapsedList")
-        for tile in self.uncollapsedList:
-            print("    ", tile, len(tile.getPossibleList()))
+        
+        # print("UncollapsedList")
+        # for tile in self.uncollapsedList:
+        #     print("    ", tile, len(tile.getPossibleList()))
+
         choosenTile = self.uncollapsedList[0]
 
         choosenTile.prepareRandomCollapse()
         self.toCollapse.append(choosenTile)
+        print(f"    choose: {choosenTile} id: {choosenTile.possibleList}")
 
 
 
@@ -254,7 +264,7 @@ class Wfc():
 
     def printTileMatrix(self):
         global tileMatrix
-
+        
         for line in tileMatrix:
             for tile in line:
                 if tile.isCollapsed:
@@ -289,7 +299,7 @@ class Wfc():
 
     # Recevies a tile and returns a list with the postion of the valid Horizontal neighbors
     def getHorizontalNeighbour(self, myTile):
-        neighbors = []
+        neighbors = [] 
         if myTile.pos[0] > 0:
             neighbors.append([myTile.pos[0]-1, myTile.pos[1], 1])
         if myTile.pos[0] < self.SIZEX-1:
@@ -309,8 +319,8 @@ class Wfc():
 
 def run(name):
     global tileMatrix
-    SIZEX = 2 # size in tiles of the final imgae
-    SIZEY = 2 # size in tiles of the final image
+    SIZEX = 3 # size in tiles of the final imgae
+    SIZEY = 3 # size in tiles of the final image
     tileQuant = 7
     myDisplay = Display(100,100, 3,3, SIZEX, SIZEY)
     
@@ -324,35 +334,59 @@ def run(name):
         try:
             myWfc = Wfc(SIZEX, SIZEY, tileQuant, name, counter)
             this = True
-        except:
+        except Exception as e:
             print(" Trying again ...")
 
             # want to save what it generated
-            myDisplay.createOuput(tileMatrix)
+            myDisplay.createOutput(tileMatrix)
             myDisplay.save(f"output/{name}{counter}.png")
 
             counter += 1    
         
-    
-    myDisplay.createOuput(tileMatrix)
+    myDisplay.createOutput(tileMatrix)
     # myDisplay.viz()
     
     myDisplay.save(f"output/final/{name}.png")
 
+
+def testTile():
+
+    # create tiles
+    tile00 = Tile(0,0,9,"hello")
+    tile01 = Tile(0,1,9,"hello")
+    tile10 = Tile(1,0,9,"hello")
+    tile11 = Tile(1,1,9,"hello")
+
+    # collapse tiles
+
+    tile00.collapse(0)
+    tile01.collapse(5)
+    tile10.collapse(3)
+    tile11.collapse(0)
+        
+    #create tile matrix
+    tileMatrix = [[tile00,tile01], [tile10,tile11]]
+    SIZEX = 2 
+    SIZEY = 2
+
+    # create the display
+    myDisplay = Display(100,100, 3,3, SIZEX, SIZEY)
+    myDisplay.createOutput(tileMatrix)
+    myDisplay.save(f"output/final/hello.png")
+
+
 if __name__ == '__main__':
 
+    # testTile()    
     name = "hello"
 
-    # run(name)
+    run(name)
 
-    threadNum = 100
-    pool = Pool(threadNum)
-    pool.map(run, list(range(threadNum)))
-    pool.close()
+    # threadNum = 100
+    # pool = Pool(threadNum)
+    # pool.map(run, list(range(threadNum)))
+    # pool.close()
         
-    # generate all the tiles, that can have whatever id
-
-
 
 
 
@@ -373,3 +407,6 @@ if __name__ == '__main__':
 
 
 #     myWfc.getNeighbourList()
+
+
+# tile matrix is a list of list, and each slot it the tile it contains

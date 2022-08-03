@@ -9,7 +9,7 @@ def sorted_alphanumeric(data):
 
 
 
-sourceFolder = "output"
+sourceFolder = "output/final"
 filenames = [os.path.join(sourceFolder, f) for f in os.listdir(sourceFolder)]
 filenames = sorted_alphanumeric(filenames)
 
