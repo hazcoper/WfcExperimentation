@@ -146,8 +146,9 @@ class Tile():
         return amount1 < amount2
 
     def __eq__(self, other):
-        amount1 = len(self.possibleList) if not self.isCollapsed else 0 
-        amount2 = len(other.possibleList) if not other.isCollapsed  else 0  
+        # amount1 = len(self.possibleList) if not self.isCollapsed else 0 
+        # amount2 = len(other.possibleList) if not other.isCollapsed  else 0  
+        return self.name == other.name
 
         return amount1 == amount2
     def __repr__(self):
