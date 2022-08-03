@@ -150,7 +150,6 @@ class Tile():
         # amount2 = len(other.possibleList) if not other.isCollapsed  else 0  
         return self.name == other.name
 
-        return amount1 == amount2
     def __repr__(self):
         # return str(len(self.idx))
         return str(self.name)
