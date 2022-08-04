@@ -351,7 +351,7 @@ class Wfc():
 def run(name):
     global tileMatrix
     SIZEX = 10 # size in tiles of the final imgae
-    SIZEY = 15 # size in tiles of the final image
+    SIZEY = 19 # size in tiles of the final image
     tileQuant = 7
     myDisplay = Display(100,100, 3,3, SIZEX, SIZEY)
     
