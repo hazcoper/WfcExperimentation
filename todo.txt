@@ -1,0 +1,5 @@
+make recursive to have back track
+make a variable for blank tile
+make a program that will define the rules automatically
+make more tiles
+experiment with tile sheets that are not square
