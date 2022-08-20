@@ -33,8 +33,14 @@ class Display():
         y = index // self.yAmount # here as well, but since my tilesheet is square, i think its okays
 
         realX = x * self.tile_height + 1*(x+1)  # here height and widht my also be wrong
-        realY = y * self.tile_width + 1*(y+1)   
-        return self.tileSet[realY:realY + self.tile_height, realX:realX + self.tile_width]
+        realY = y * self.tile_width + 1*(y+1)  
+
+        # lets change the color of the blank tile for debug purposes
+        myImage = self.tileSet[realY:realY + self.tile_height, realX:realX + self.tile_width] 
+        if index == 6:
+            myImage[np.all(myImage == (0, 0, 0), axis=-1)] = (50,25,25)
+
+        return myImage 
 
     def posShowPart(self):
         pass
@@ -53,10 +59,40 @@ class Display():
                 # print(realY*10, realX*10, realY*10+10, realX*10 +10)
                 self.output[realY:realY+self.tile_height, realX:realX+self.tile_height] = self.indexGetPart(photoID)
                 # cv2.imwrite("subway.png", self.output)
+
+                cv2.imshow("image", self.output)
+                cv2.waitKey()
+                cv2.destroyAllWindows()
             
         # cv2.imwrite("subway.png", self.output)
 
+    def orderedOutput(self, matrix, orderedList):
+        #ordered list will be a list with the pos of the tiles by the order they were placed
+
+        output_shape = (self.tile_height * self.sizeY, self.tile_width * self.sizeX, 3)
+        self.output = np.zeros(output_shape, np.uint8)
+
+        for pos in orderedList:
+            x,y = pos
+            tile = matrix[y][x]
+            photoID = tile.imageID if  tile.isCollapsed == True else 6
+
+            if photoID == 6:
+                print("this is a blank tile")
+
+            realY = y*self.tile_height # this is defenetly wrong
+            realX = x*self.tile_height # need to check later with a non square tile sheet
+            # print(realY*10, realX*10, realY*10+10, realX*10 +10)
+            self.output[realY:realY+self.tile_height, realX:realX+self.tile_height] = self.indexGetPart(photoID)
+            # cv2.imwrite("subway.png", self.output)
+
+            cv2.imshow("image", self.output)
+            cv2.waitKey()
+            cv2.destroyAllWindows()
+
+
     def save(self, filename):
+        # change one color for another
         self.output[np.all(self.output == (0, 0, 255), axis=-1)] = (0,215,255)
         
         cv2.imwrite(filename, self.output)
@@ -177,6 +213,7 @@ class Wfc():
 
         self.toCollapse = [] # list of tiles that are ready to be collapse
         self.uncollapsedList = [] # list with all the tiles that are yet to be collapsed
+        self.orderedCollapsed = []   # list where the tiles will be put by order, used to construct the final image with order
 
         self.doLoop = True
         self.collapseCounter = 0
@@ -265,6 +302,9 @@ class Wfc():
         print(f"       after: {self.toCollapse}")
         print(f"       after: {self.uncollapsedList}")
 
+        # add tile to order list
+        self.orderedCollapsed.append(tile.pos)
+
         # update the neighbors
         print(f"    checkig neighbours")
         for nTile in self.getNeighbourTileList(tile):
@@ -350,8 +390,8 @@ class Wfc():
 
 def run(name):
     global tileMatrix
-    SIZEX = 10 # size in tiles of the final imgae
-    SIZEY = 19 # size in tiles of the final image
+    SIZEX = 5 # size in tiles of the final imgae
+    SIZEY = 10 # size in tiles of the final image
     tileQuant = 7
     myDisplay = Display(100,100, 3,3, SIZEX, SIZEY)
     
@@ -374,7 +414,9 @@ def run(name):
 
         #     counter += 1    
 
-    myDisplay.createOutput(tileMatrix)
+    # myDisplay.createOutput(tileMatrix)
+    myDisplay.orderedOutput(tileMatrix, myWfc.orderedCollapsed)
+
     # myDisplay.viz()
     
     myDisplay.save(f"output/final/{name}.png")
@@ -443,10 +485,10 @@ if __name__ == '__main__':
     name = "hello"
     run(name)
 
-    threadNum = 500
-    pool = Pool(threadNum)
-    pool.map(run, list(range(threadNum)))
-    pool.close()
+    # threadNum = 500
+    # pool = Pool(threadNum)
+    # pool.map(run, list(range(threadNum)))
+    # pool.close()
         
 
 
