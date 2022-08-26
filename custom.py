@@ -5,6 +5,8 @@ import numpy as np
 
 from multiprocessing import Pool
 
+BLANK_TILE = 6 # the index of the tile in the tile sheet that corresponds to the empty tile
+
 
 class Display():
 
@@ -37,7 +39,7 @@ class Display():
 
         # lets change the color of the blank tile for debug purposes
         myImage = self.tileSet[realY:realY + self.tile_height, realX:realX + self.tile_width] 
-        if index == 6:
+        if index == BLANK_TILE:
             myImage[np.all(myImage == (0, 0, 0), axis=-1)] = (50,25,25)
 
         return myImage 
@@ -52,7 +54,7 @@ class Display():
         for y in range(self.sizeY):
             for x in range(self.sizeX):
                 tile = matrix[y][x]
-                photoID = tile.imageID if  tile.isCollapsed == True else 6
+                photoID = tile.imageID if  tile.isCollapsed == True else BLANK_TILE
 
                 realY = y*self.tile_height # this is defenetly wrong
                 realX = x*self.tile_height # need to check later with a non square tile sheet
@@ -75,11 +77,11 @@ class Display():
         for pos in orderedList:
             x,y = pos
             tile = matrix[y][x]
-            photoID = tile.imageID if  tile.isCollapsed == True else 6
+            photoID = tile.imageID if  tile.isCollapsed == True else BLANK_TILE
 
-            if photoID == 6:
-                print("this is a blank tile")
-
+            if photoID == BLANK_TILE:
+                pass
+                
             realY = y*self.tile_height # this is defenetly wrong
             realX = x*self.tile_height # need to check later with a non square tile sheet
             # print(realY*10, realX*10, realY*10+10, realX*10 +10)
@@ -139,7 +141,7 @@ class Tile():
         self.isCollapsed = False if imageID == None else True
 
         # remove the blank tile, it will only be used in case of emergency
-        self.possibleList.remove(6)
+        self.possibleList.remove(BLANK_TILE)
 
         self.name = name
 
@@ -162,13 +164,13 @@ class Tile():
     def updatePossibleList(self, possibleList):
         print(f"      new: {possibleList} prev: {self.possibleList}")
         tempList = [x for x in self.possibleList if x in possibleList]
-        if possibleList[0] != 6 and len(tempList) !=  0:
+        if possibleList[0] != BLANK_TILE and len(tempList) !=  0:
             # means that I can join the possibilities
             self.possibleList = tempList
             return
         
         # means that there are no possibilities here
-        self.possibleList = [6]
+        self.possibleList = [BLANK_TILE]
 
 
         return
