@@ -39,7 +39,7 @@ class Display():
 
         # lets change the color of the blank tile for debug purposes
         myImage = self.tileSet[realY:realY + self.tile_height, realX:realX + self.tile_width] 
-        if index == BLANK_TILE:
+        if index == BLANK_TILE:  
             myImage[np.all(myImage == (0, 0, 0), axis=-1)] = (50,25,25)
 
         return myImage 
@@ -48,6 +48,9 @@ class Display():
         pass
 
     def createOutput(self, matrix):
+        """
+        Place all the tiles in the final image in no particular order
+        """
         output_shape = (self.tile_height * self.sizeY, self.tile_width * self.sizeX, 3)
         self.output = np.zeros(output_shape, np.uint8)
 
@@ -69,6 +72,9 @@ class Display():
         # cv2.imwrite("subway.png", self.output)
 
     def orderedOutput(self, matrix, orderedList):
+        """
+        Same function as createOutput, but here it will place the tiles in the image by the order they were collapsed
+        """
         #ordered list will be a list with the pos of the tiles by the order they were placed
 
         output_shape = (self.tile_height * self.sizeY, self.tile_width * self.sizeX, 3)
@@ -127,6 +133,9 @@ class Image():
         # 1 = Top
         # 2 = Right
         # 3 = Bottom
+        if imageID not in self.connections:
+            print(f"[ERROR] - Please check the connection list, index {imageID} not available")
+            exit()
         return self.connections[imageID][side]
 
 
@@ -162,7 +171,7 @@ class Tile():
     
     # receives a possibleList and replaces the current possibleList
     def updatePossibleList(self, possibleList):
-        print(f"      new: {possibleList} prev: {self.possibleList}")
+        print(f"        new: {possibleList} prev: {self.possibleList}")
         tempList = [x for x in self.possibleList if x in possibleList]
         if possibleList[0] != BLANK_TILE and len(tempList) !=  0:
             # means that I can join the possibilities
@@ -179,6 +188,14 @@ class Tile():
     # there are no tiles to collapse, so I will prepare this one to collapse
     # but will not collapse it because its the loop that will collapse the tile
     def prepareRandomCollapse(self):
+        """
+        Used when there is no other tile to collapse
+        choose reanodm photoID from the list of possible photoIDs 
+
+        does not collapse the tile, only prepares it to be collapsed
+        basically assigns a photoID for the tile
+        """
+
         self.possibleList = [random.choice(self.possibleList)]
 
     def __gt__(self, other):
@@ -238,9 +255,9 @@ class Wfc():
         # if its empty collapse random tile
         while self.doLoop:
             print(f"Starting iteration: {self.iterationCounter}")
-            print(f"  waiting to be collapsed: {len(self.toCollapse)}")
+            print(f"  to be collapsed list: {self.toCollapse}")
             for tile in self.toCollapse:  # this is the list of tiles that are ready to be collapsed (have only one option for photoID)
-                print(f"  Collapsing {tile}")
+                print(f"  Collapsing {tile} {tile.pos}")
                 value = self.collapseTile(tile)
                 if value == -1:
                     print("Finished")
@@ -254,8 +271,11 @@ class Wfc():
             self.iterationCounter += 1
             print()
 
-    # choose a random tile that has not been collapsed and force it to collapse
     def randomCollapse(self):
+        """
+        Choose a random tile that has not been collapsed and force it to collapse
+        """
+
         choosenTile = random.choice(self.uncollapsedList)
         choosenTile.prepareRandomCollapse()
 
@@ -268,13 +288,17 @@ class Wfc():
         filterAmount = len(self.uncollapsedList[0].getPossibleList()) 
         possibleList = [x  for x in self.uncollapsedList if len(x.getPossibleList()) == filterAmount] # list with all the tiles that have the minimum entropy
 
-        choosenTile = self.uncollapsedList[0]
-        choosenTile = random.choice(possibleList)
+        choosenTile = self.uncollapsedList[0]      # choose the first tile from the uncollapsed list ( will always be the same )
+        choosenTile = random.choice(possibleList)  # choose the tile with least entropy
+
+
+        # here instead of choosing a random option, i should see which option offers me the most ammount of entropy
+        # in other words, i should see which option will give me more options ( i do not want to place a tile that will not be able to connect to any other tile)
+
         # need to add randomness to this
         choosenTile.prepareRandomCollapse()
         self.toCollapse.append(choosenTile)
         print(f"    choose: {choosenTile} id: {choosenTile.possibleList}")
-
 
 
     
@@ -296,28 +320,32 @@ class Wfc():
         print("    telling tile to collapse")
         tile.collapse(tile.getPossibleList()[0])
         
-        print("    removing")
-        print(f"       before: {self.toCollapse}")
-        print(f"       before: {self.uncollapsedList}")
+        print("    updating all the tiles lists")
         self.toCollapse.remove(tile)
         self.uncollapsedList.remove(tile)
-        print(f"       after: {self.toCollapse}")
-        print(f"       after: {self.uncollapsedList}")
+        self.orderedCollapsed.append(tile.pos) #add tile to order list (reconstruct the image in order)
+        print(f"       new (toCollapse): {self.toCollapse}")
+        print(f"       new (uncollapsed): {self.uncollapsedList}")
+        print(f"       new (collapsed): {self.orderedCollapsed}")
 
-        # add tile to order list
-        self.orderedCollapsed.append(tile.pos)
 
         # update the neighbors
-        print(f"    checkig neighbours")
-        for nTile in self.getNeighbourTileList(tile):
+        neightbourList =  self.getNeighbourTileList(tile)
+        print(f"    checkig neighbours: {neightbourList}")
+
+        for nTile in neightbourList:
+            print(f"      checking {nTile}")
             if nTile[0].isCollapsed:
                 #ignore tiles that have already been collapse
+                print("        tile is already collapsed")
                 continue
+            
             self.updateTile(nTile[0], tile.imageID, nTile[1])
 
         self.collapseCounter += 1
         if self.collapseCounter == self.SIZEX*self.SIZEY:
             # end condition
+            print("We have reached the end")
             return -1
 
         
@@ -327,7 +355,7 @@ class Wfc():
     def updateTile(self, tile, imageID, side):
 
         tile.updatePossibleList(self.Image.getPossibleId(imageID, side)) 
-        print(f"      n: {tile} has now {tile.getPossibleList()}")
+        print(f"        n: {tile} has now {tile.getPossibleList()}")
         if len(tile.getPossibleList()) == 1 and tile not in self.toCollapse:
             # means that it is ready to be collapsed, lets add to the list
             print(f"        update tile has appended {tile}")
