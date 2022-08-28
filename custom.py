@@ -487,17 +487,29 @@ def testTile():
 def testNeighbors():
     # generate a 50x50 board with 10 options and check the returned neighbors
     # myWfc = Wfc(50, 50, 10)
-    myWfc = Wfc(2, 3, 10, "whjat", 0)
+
+    SIZEX = 2 # size in tiles of the final imgae
+    SIZEY = 3 # size in tiles of the final image
+
+    myDisplay = Display(100,100, 3,3, SIZEX, SIZEY)
+    # myWfc = Wfc(2, 3, 7, "what", 0)
+
+    myWfc = Wfc(SIZEX, SIZEY, 7, "what", 0)
+
+
 
     
-    tile1 = myWfc.indexGetTile(2)  #top left 
-    print(tile1)
+    tile1 = myWfc.indexGetTile(1)  #top right 
+    print("this is the selected tile: ", tile1, tile1.pos)
     # tile1 = myWfc.posGetTile([10, 0])  #bottom left
     # print(tile1)
 
 
 
-    print(myWfc.getNeighbourTileList(tile1))
+    print("this is the neighbour of the selected tile", myWfc.getNeighbourTileList(tile1))
+
+    myDisplay.orderedOutput(tileMatrix, myWfc.orderedCollapsed)
+    myDisplay.save(f"output/final/hello.png")
 
 
 
