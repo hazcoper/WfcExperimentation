@@ -1,18 +1,27 @@
 import cv2
 import numpy as np
 import random
+from matplotlib import pyplot as plt
+
+from colorGenerator import ColorGenerator
 
 import os
 
 """
 Script that will indentify the shapes and randomize their color
 """
+IS_RANDOM = False # choose palette coloring vs random
+cg = ColorGenerator()
+
 
 def random_color():
+    global cg
 
-    rgbl = [random.randint(0,255), random.randint(0,255), random.randint(0,255)]
-    return tuple(rgbl)
+    if IS_RANDOM:
+        rgbl = [random.randint(0,255), random.randint(0,255), random.randint(0,255)]
+        return tuple(rgbl)
 
+    return cg.getRandomColor()
 
 def auto_canny(image, sigma=0.33):
     # compute the median of the single channel pixel intensities
@@ -28,8 +37,11 @@ def auto_canny(image, sigma=0.33):
 name = "hello.png"
 
 nameLis  = [f for f in os.listdir("output/final") if os.path.isfile(os.path.join("output/final", f))]
+# nameLis = ["0.png"]
 for name in nameLis:
     try:
+        cg.setRandomPalette()
+        
         # load the image
         path = os.path.join("output/final", name)
         image = cv2.imread(path)
@@ -67,12 +79,18 @@ for name in nameLis:
         tight = cv2.Canny(blurred, 225, 250)
         auto = auto_canny(blurred)
 
+        # cv2.imshow("auto", auto)
+        # cv2.imshow("wide", wide)
+        # cv2.imshow("tight", tight)
+        # cv2.waitKey()
 
         # Finding Contours
         # Use a copy of the image e.g. edged.copy()
         # since findContours alters the image
         contours, hierarchy = cv2.findContours(auto, 
-            cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+            cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
+        
+
                 
         
         # Draw all contours
@@ -82,15 +100,25 @@ for name in nameLis:
         height = h + 2
         width = w + 2
         blank_image = np.zeros((height,width,3), np.uint8)
-        # cv2.drawContours(blank_image, contours[0], -1, color=(255, 255, 255), thickness=cv2.FILLED)
 
 
-        for contour in contours:
-            cv2.fillPoly(blank_image, pts = [contour], color=random_color())
+        # maybe i can just draw this in order from the biggest to the smallest, ignoring the extra ones
 
-            cv2.imshow(" ", blank_image)
-            cv2.waitKey()
+        myList = [[x, cv2.contourArea(contours[x])] for x in range(len(contours))]
+        myList = (sorted(myList, key=lambda x:x[1], reverse=True))
 
-        cv2.imwrite(f"output/final/colored/{name}",blank_image)
+        for index in myList:
+            counter = index[0]
+            h = hierarchy[0][counter]
+            
+
+            # dont want to draw contours with hierarchy (-1 -1 -1 x)
+            if h[0] == h[1] and h[1] == h[2] and h[2] == -1:
+                continue
+            
+            
+            cv2.fillPoly(blank_image, pts = [contours[counter]], color=random_color())
+ 
+        cv2.imwrite(f"output/final/colored/{name}-{cg.getPaletteIndex()}",blank_image)
     except Exception as e:
         print(f"{name} - problem {e}")
