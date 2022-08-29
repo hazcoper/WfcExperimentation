@@ -65,9 +65,9 @@ class Display():
                 self.output[realY:realY+self.tile_height, realX:realX+self.tile_height] = self.indexGetPart(photoID)
                 # cv2.imwrite("subway.png", self.output)
 
-                cv2.imshow("image", self.output)
-                cv2.waitKey()
-                cv2.destroyAllWindows()
+                # cv2.imshow("image", self.output)
+                # cv2.waitKey()
+                # cv2.destroyAllWindows()
             
         # cv2.imwrite("subway.png", self.output)
 
@@ -178,8 +178,8 @@ class Tile():
             self.possibleList = tempList
             return
         
-        # means that there are no possibilities here
-        self.possibleList = [BLANK_TILE]
+        # # means that there are no possibilities here
+        # self.possibleList = [BLANK_TILE]
 
 
         return
@@ -196,6 +196,8 @@ class Tile():
         basically assigns a photoID for the tile
         """
 
+
+        print(f"this is prepare random collapse, and this are the options {self.possibleList}")
         self.possibleList = [random.choice(self.possibleList)]
 
     def __gt__(self, other):
@@ -288,6 +290,8 @@ class Wfc():
         filterAmount = len(self.uncollapsedList[0].getPossibleList()) 
         possibleList = [x  for x in self.uncollapsedList if len(x.getPossibleList()) == filterAmount] # list with all the tiles that have the minimum entropy
 
+        print(f"In min collapse: filterAmount: {filterAmount} and possibleList: {possibleList}")
+
         choosenTile = self.uncollapsedList[0]      # choose the first tile from the uncollapsed list ( will always be the same )
         choosenTile = random.choice(possibleList)  # choose the tile with least entropy
 
@@ -359,6 +363,10 @@ class Wfc():
         if len(tile.getPossibleList()) == 1 and tile not in self.toCollapse:
             # means that it is ready to be collapsed, lets add to the list
             print(f"        update tile has appended {tile}")
+
+            if BLANK_TILE in tile.getPossibleList():
+                return
+
             self.toCollapse.append(tile)
 
 
@@ -393,9 +401,21 @@ class Wfc():
 
     # Receives a tile and returns a list with all the valid neighbouring tiles
     def getNeighbourTileList(self, myTile):
+        """
+        Receives a tile and returns a list with all the valid neighbouring tiles
+        dont forget that the returned list is [index, position in realtion to myTile]
+
+        0 = Left, 1 = Top, 2 = Right, 3 = Bottom
+        """
+        
         global tileMatrix
+
+        # print(f"THis is the vertical neighbor: {self.getVerticalNeighbour(myTile)}")
+        # print(f"THis is the horizontal neighbor: {self.getHorizontalNeighbour(myTile)}")
+
         posList = self.getVerticalNeighbour(myTile) + self.getHorizontalNeighbour(myTile) 
-        tileList = [ [ tileMatrix[pos[1]][pos[0]] , pos[2] ] for pos in posList]
+
+        tileList = [ [ tileMatrix[pos[1]][pos[0]] , pos[2] ] for pos in posList]   # need the tileMatrix because I want the index of the tiles and not the position of the tiles
         return tileList
 
     # Recevies a tile and returns a list with the postion of the valid Horizontal neighbors
@@ -408,7 +428,7 @@ class Wfc():
 
         return neighbors
 
-    # Recevies a tile and returns a list with the postion of the valid Horizontal neighbors
+    # Recevies a tile and returns a list with the postion of the valid Vertical neighbors
     def getVerticalNeighbour(self, myTile):
         neighbors = []
         if myTile.pos[1] > 0:
@@ -420,8 +440,8 @@ class Wfc():
 
 def run(name):
     global tileMatrix
-    SIZEX = 5 # size in tiles of the final imgae
-    SIZEY = 10 # size in tiles of the final image
+    SIZEX = 20 # size in tiles of the final imgae
+    SIZEY = 20 # size in tiles of the final image
     tileQuant = 7
     myDisplay = Display(100,100, 3,3, SIZEX, SIZEY)
     
@@ -444,8 +464,8 @@ def run(name):
 
         #     counter += 1    
 
-    # myDisplay.createOutput(tileMatrix)
-    myDisplay.orderedOutput(tileMatrix, myWfc.orderedCollapsed)
+    myDisplay.createOutput(tileMatrix)
+    # myDisplay.orderedOutput(tileMatrix, myWfc.orderedCollapsed)  # same thing as createoutput
 
     # myDisplay.viz()
     
@@ -508,10 +528,11 @@ def testNeighbors():
 
     print("this is the neighbour of the selected tile", myWfc.getNeighbourTileList(tile1))
 
-    myDisplay.orderedOutput(tileMatrix, myWfc.orderedCollapsed)
+    # myDisplay.orderedOutput(tileMatrix, myWfc.orderedCollapsed)
     myDisplay.save(f"output/final/hello.png")
 
 
+    # lets chage the colors
 
 
 if __name__ == '__main__':
@@ -522,18 +543,24 @@ if __name__ == '__main__':
 
     print("Seed was:", seed)
 
+    # name = "hello"
+    # run(name)
+    trials = 10
+    for y in range(trials):
 
-    # testTile()    
-    name = "hello"
-    run(name)
-
-    # threadNum = 500
-    # pool = Pool(threadNum)
-    # pool.map(run, list(range(threadNum)))
-    # pool.close()
-        
+        threadNum = int(500/trials)
+        pool = Pool(threadNum)
+        pool.map(run, list(range(y*50, threadNum + y*50)))
+        pool.close()
+    
 
 
 
 
 # tile matrix is a list of list, and each slot it the tile it contains
+
+# 0 - 10
+# 10 - 20
+# 20 - 30
+# 40 - 50
+
