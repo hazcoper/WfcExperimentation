@@ -40,10 +40,11 @@ class Display():
         realX = x * self.tile_height + 1*(x+1)  # here height and widht my also be wrong
         realY = y * self.tile_width + 1*(y+1)  
 
-        # lets change the color of the blank tile for debug purposes
         myImage = self.tileSet[realY:realY + self.tile_height, realX:realX + self.tile_width] 
-        if index == BLANK_TILE:  
-            myImage[np.all(myImage == (0, 0, 0), axis=-1)] = (50,25,25)
+
+        # # lets change the color of the blank tile for debug purposes
+        # if index == BLANK_TILE:  
+        #     myImage[np.all(myImage == (0, 0, 0), axis=-1)] = (50,25,25)
 
         return myImage 
 
