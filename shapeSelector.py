@@ -115,9 +115,18 @@ for name in nameLis:
             # dont want to draw contours with hierarchy (-1 -1 -1 x)
             if h[0] == h[1] and h[1] == h[2] and h[2] == -1:
                 continue
-            
-            
+          
+            # check to see if the place where I am placing the shape is black or not
+            # if its not black, it means that it is the inside of another shape so I want to use the black color
+            if np.any(blank_image[contours[counter][0][0][1], contours[counter][0][0][0]] != 0):
+                 cv2.fillPoly(blank_image, pts = [contours[counter]], color=(0,0,0))
+                continue
+
             cv2.fillPoly(blank_image, pts = [contours[counter]], color=random_color())
+            # cv2.imshow(" ", blank_image)
+            # cv2.waitKey()
+
+            # print()
  
         cv2.imwrite(f"output/final/colored/{name}-{cg.getPaletteIndex()}",blank_image)
     except Exception as e:
