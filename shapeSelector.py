@@ -119,7 +119,7 @@ for name in nameLis:
             # check to see if the place where I am placing the shape is black or not
             # if its not black, it means that it is the inside of another shape so I want to use the black color
             if np.any(blank_image[contours[counter][0][0][1], contours[counter][0][0][0]] != 0):
-                 cv2.fillPoly(blank_image, pts = [contours[counter]], color=(0,0,0))
+                cv2.fillPoly(blank_image, pts = [contours[counter]], color=(0,0,0))
                 continue
 
             cv2.fillPoly(blank_image, pts = [contours[counter]], color=random_color())
