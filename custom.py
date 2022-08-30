@@ -11,13 +11,13 @@ BLANK_TILE = 6 # the index of the tile in the tile sheet that corresponds to the
 class Display():
 
     def __init__ (self, tile_height, tile_width, xAmount, yAmount, sizeX, sizeY, filename="subway-tilesheet.png"):
-        self.tile_height = tile_height
-        self.tile_width = tile_width
-        self.tileSet = cv2.imread(filename)
-        self.xAmount, self.yAmount = xAmount, yAmount # in tile sheet, what are the dimensions, usually 3x3
-        self.sizeX = sizeX
-        self.sizeY = sizeY
-        print(sizeX, sizeY)
+        self.tile_height = tile_height         # the height of the a tile in the tilesheet
+        self.tile_width = tile_width           # the width of the tile in the tilesheet
+        self.tileSet = cv2.imread(filename)    # tilesheet image
+        self.xAmount = xAmount                 # how many tiles present in tilesheet on the x direction 
+        self.yAmount = yAmount                 # how many tiles present in tilesheet on the y direction
+        self.sizeX = sizeX                     # how many tiles on the output image
+        self.sizeY = sizeY                     # how many tiles on the output image
 
     def indexShowPart(self, index):
         x = index % self.xAmount
@@ -31,6 +31,9 @@ class Display():
         pass
     
     def indexGetPart(self, index):
+        """
+        Receives an index and returns the tile corresponding to that index
+        """
         x = index % self.xAmount # not sure if this is right or not
         y = index // self.yAmount # here as well, but since my tilesheet is square, i think its okays
 
