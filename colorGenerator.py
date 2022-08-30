@@ -43,6 +43,9 @@ class ColorGenerator():
     def getPaletteIndex(self):
         return self.selectedPalette
 
+    def getNumberPalette(self):
+        return len(self.paletteList)
+
     def processDatabase(self):
         """
         Will process and save all of the color palette available in the database
