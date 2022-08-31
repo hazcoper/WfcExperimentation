@@ -40,9 +40,9 @@ def rotateImage(image, amount):
     returns the rotated image
     rotates clockwise
     """
-
+    output = image.copy()
     for x in range(amount):
-        output = cv2.rotate( image, cv2.cv2.ROTATE_90_CLOCKWISE)
+        output = cv2.rotate( output, cv2.cv2.ROTATE_90_CLOCKWISE)
 
 
     return output
@@ -54,63 +54,80 @@ def changeColor(image, color):
     """
 
     # find what is the non black color
-    presentColor = (0, 0, 255, 255)
-    image[np.all(image == presentColor, axis=-1)] = color
+    presentColor = (0, 16, 255, 255)
+    output = image.copy()
 
+    output[np.all(output == presentColor, axis=-1)] = color
 
+    return output
 
-testImage = cv2.imread("tiles/complexSubway/connecting.png")
-
-
-# cv2.imshow("0", testImage)
-# testImage = rotateImage(testImage, 1)
-# cv2.imshow("1", testImage)
-# testImage = rotateImage(testImage, 1)
-# cv2.imshow("2", testImage)
-# testImage = rotateImage(testImage, 1)
-# cv2.imshow("3", testImage)
-
-cv2.imshow("before", testImage)
-changeColor(testImage, [20,100,30])
-cv2.imshow("after", testImage)
-
-cv2.waitKey()
-# folder = "tiles/complexSubway"
-
-# colorList = [[86, 50, 178], [125, 212, 252], [117, 170, 49], [68, 239, 162]]
-
-# # load the circle
-# circle = cv2.imread(os.path.join(folder, "circle.png"), -1)
-
-# # load the connector
-# rawConnector = cv2.imread(os.path.join(folder, "connecting.png"), -1)
-
-# # generate new image
-# height = circle.shape[0]
-# width = circle.shape[1]
-
-# output = np.zeros((height,width,3), np.uint8)
-
-# # add the circle
-# output = overlay_transparent(output, circle)
-# cv2.imshow("output", output)
-
-# # the the four connectors
-
-# # want to add the combinations of all of the colors
-# for color1 in colorList:
-#     for color2 in colorList:
-        
-#         # dont want to do it with my self
-#         if color1 == color2:
-#             print("comparing with my own")
-#             continue
-
-        
-
-
-
-# output = overlay_transparent(output, rawConnector)
-
-# cv2.imshow("output", output)
 # cv2.waitKey()
+folder = "tiles/complexSubway"
+counter = 0
+
+colorList = [[86, 50, 178, 255], [125, 212, 252, 255], [117, 170, 49, 255], [68, 239, 162, 255]]
+
+# load the circle
+circle = cv2.imread(os.path.join(folder, "circle.png"), -1)
+
+# load the connector
+rawConnector = cv2.imread(os.path.join(folder, "connecting.png"), -1)
+
+# generate new image
+height = circle.shape[0]
+width = circle.shape[1]
+
+output = np.zeros((height,width,3), np.uint8)
+
+# add the circle
+output = overlay_transparent(output, circle)
+cv2.imshow("output", output)
+
+# the the four connectors
+
+# want to add the combinations of all of the colors
+for color1 in colorList:
+    for color2 in colorList:
+        
+        # dont want to do it with my self
+        if color1 == color2:
+            print("comparing with my own")
+            continue
+
+        list1 = {0,1,2,3}
+        setList = []
+
+        for side1 in list1:
+            for side2 in list1:
+                createSet = {side1, side2}
+                extraSet = list1.difference(createSet)
+                
+                if side1 == side2:
+                    continue  # dont want to compare with my self
+                if createSet in setList:
+                    continue  # dont want to repeat combinations
+
+                setList.append(createSet)
+
+
+                createList = list(createSet)
+                extraList = list(extraSet)
+
+                color1_raw = changeColor(rawConnector, color1)
+                color2_raw = changeColor(rawConnector, color2)
+
+                color1_1 = rotateImage(color1_raw, createList[0])
+                color1_2 = rotateImage(color1_raw, createList[1])
+                color2_1 = rotateImage(color2_raw, extraList[0])
+                color2_2 = rotateImage(color2_raw, extraList[1])
+                
+                output = overlay_transparent(output, color1_1)
+                output = overlay_transparent(output, color1_2)
+                output = overlay_transparent(output, color2_1)
+                output = overlay_transparent(output, color2_2)
+                
+                cv2.imwrite(f"{folder}/connector_{counter}.png", output)
+                # cv2.imshow("output", output)
+                # cv2.waitKey()
+                counter+= 1
+
