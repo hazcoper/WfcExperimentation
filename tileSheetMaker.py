@@ -1,4 +1,7 @@
 from wfc import WaveFunctionCollapse
+from custom import Display
+import numpy as np
+import cv2
 
 CONFIG = {
     "clean_edges": False,
