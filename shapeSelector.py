@@ -10,6 +10,8 @@ import os
 """
 Script that will indentify the shapes and randomize their color
 """
+
+
 IS_RANDOM = False # choose palette coloring vs random
 cg = ColorGenerator()
 
@@ -33,17 +35,18 @@ def auto_canny(image, sigma=0.33):
     # return the edged image
     return edged
 
+folderName = "output/final"
 
-name = "hello.png"
-
-nameLis  = [f for f in os.listdir("output/final") if os.path.isfile(os.path.join("output/final", f))]
+nameLis  = [f for f in os.listdir(folderName) if os.path.isfile(os.path.join(folderName, f))]
 # nameLis = ["0.png"]
+
+nameCounter = 100
 for name in nameLis:
     try:
         cg.setRandomPalette()
         
         # load the image
-        path = os.path.join("output/final", name)
+        path = os.path.join(folderName, name)
         image = cv2.imread(path)
         h, w, _ = image.shape
 
@@ -52,7 +55,6 @@ for name in nameLis:
         width = w + 2
         big_image = np.zeros((height,width,3), np.uint8)
 
-        # place the original image in the middle
 
 
         # load background image as grayscale
@@ -62,6 +64,7 @@ for name in nameLis:
         yoff = round((hh-h)/2)
         xoff = round((ww-w)/2)
 
+        # place the original image in the middle
         # use numpy indexing to place the resized image in the center of background image
         big_image[yoff:yoff+h, xoff:xoff+w] = image
 
@@ -72,17 +75,11 @@ for name in nameLis:
         blurred = cv2.GaussianBlur(gray, (3, 3), 0)
 
 
-
         # apply Canny edge detection using a wide threshold, tight
         # threshold, and automatically determined threshold
         wide = cv2.Canny(blurred, 10, 200)
         tight = cv2.Canny(blurred, 225, 250)
         auto = auto_canny(blurred)
-
-        # cv2.imshow("auto", auto)
-        # cv2.imshow("wide", wide)
-        # cv2.imshow("tight", tight)
-        # cv2.waitKey()
 
         # Finding Contours
         # Use a copy of the image e.g. edged.copy()
@@ -90,12 +87,6 @@ for name in nameLis:
         contours, hierarchy = cv2.findContours(auto, 
             cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
         
-
-                
-        
-        # Draw all contours
-        # -1 signifies drawing all contours
-        # cv2.drawContours(image, contours, -1, (0, 255, 0), -1)
 
         height = h + 2
         width = w + 2
@@ -118,16 +109,17 @@ for name in nameLis:
           
             # check to see if the place where I am placing the shape is black or not
             # if its not black, it means that it is the inside of another shape so I want to use the black color
-            if np.any(blank_image[contours[counter][0][0][1], contours[counter][0][0][0]] != 0):
-                cv2.fillPoly(blank_image, pts = [contours[counter]], color=(0,0,0))
+            if np.any(big_image[contours[counter][0][0][1], contours[counter][0][0][0]] != 0):
+                cv2.fillPoly(big_image, pts = [contours[counter]], color=(0,0,0))
+                cv2.imwrite(f"{folderName}/{nameCounter}_raw.png",big_image)
+                nameCounter += 1
                 continue
 
-            cv2.fillPoly(blank_image, pts = [contours[counter]], color=random_color())
-            # cv2.imshow(" ", blank_image)
-            # cv2.waitKey()
+            cv2.fillPoly(big_image, pts = [contours[counter]], color=random_color())
+            cv2.imwrite(f"{folderName}/{nameCounter}_raw.png",big_image)
+            nameCounter += 1
 
-            # print()
  
-        cv2.imwrite(f"output/final/colored/{name}-{cg.getPaletteIndex()}",blank_image)
+        cv2.imwrite(f"{folderName}/colored/{name}-{cg.getPaletteIndex()}",blank_image)
     except Exception as e:
         print(f"{name} - problem {e}")
