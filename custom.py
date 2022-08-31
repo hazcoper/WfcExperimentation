@@ -19,6 +19,9 @@ class Display():
         self.sizeX = sizeX                     # how many tiles on the output image
         self.sizeY = sizeY                     # how many tiles on the output image
 
+        self.counter = 0
+        
+
     def indexShowPart(self, index):
         x = index % self.xAmount
         y = index // self.yAmount
@@ -102,6 +105,8 @@ class Display():
             cv2.waitKey()
             cv2.destroyAllWindows()
 
+            cv2.imwrite(f"film/{self.counter}_raw.png", self.output)
+            self.counter += 1
 
     def save(self, filename):
         # change one color for another
