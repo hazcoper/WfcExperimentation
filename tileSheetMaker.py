@@ -2,6 +2,39 @@ from wfc import WaveFunctionCollapse
 from custom import Display
 import numpy as np
 import cv2
+import os
+
+
+verticalList = [
+
+    ".tiles/complexSubway/0_vertical.png",
+    ".tiles/complexSubway/1_vertical.png",
+    ".tiles/complexSubway/2_vertical.png",
+    ".tiles/complexSubway/3_vertical.png",
+
+]
+
+leftToUp = [
+
+    ".tiles/complexSubway/0_leftToUp.png",
+    ".tiles/complexSubway/1_leftToUp.png",
+    ".tiles/complexSubway/2_leftToUp.png",
+    ".tiles/complexSubway/3_leftToUp.png",
+
+]
+
+folderName = "tiles/complexSubway"
+connectorNameList = [x for x in os.listdir(folderName) if "connector" in x and ]
+print(connectorNameList)
+exit( )
+connectorList = {
+    ".tiles/complexSubway/0_leftToUp.png",
+    ".tiles/complexSubway/1_leftToUp.png",
+    ".tiles/complexSubway/2_leftToUp.png",
+    ".tiles/complexSubway/3_leftToUp.png",
+
+}
+
 
 CONFIG = {
     "clean_edges": False,
