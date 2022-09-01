@@ -162,7 +162,7 @@ def generateConnections():
                 continue
 
             # check to see if its a connector (they cant connect to one another)
-            if index > 31 and index2 > 31:
+            if index >= 24 and index2 >= 24:
                 # means that it is a connector comparing to another connector
                 continue
 
@@ -207,8 +207,92 @@ def generateConnections():
     print(outputDict)
                 
 
+    return outputDict
+                
+
+
+
+def demoConnecitons():
+    """
+    will generate the connections using the generateConnections function
+    for each of the connections it will generate an image with the given connection 
+    it will ask the user if the connection is a valid connection or not
+        according to the answer it will alter the connection list
+    at the end it will return the connection list
+    """
+
+    from custom import Display
+    from custom import Tile
+
+    def printTileMatrix(tileMatrix):
+            
+        for line in tileMatrix:
+            for tile in line:
+                if tile.isCollapsed:
+                    print(tile.imageID, end=" ")
+                else:
+                    print(f"{len(tile.getPossibleList())}.", end=" ")
+            print()
+
+
+    xAmount = yAmount = 8
+    tileQuant = xAmount * xAmount
+    sizex = sizey = 3
+    myDisplay = Display(100, 100, xAmount, yAmount, sizex, sizey, "subway-tilesheet-complex.png")
+    tileMatrix = [[Tile(x, y, tileQuant, x + y * sizex) for x in range(sizex)] for y in range(sizey)]
+
+
+    connectionList = generateConnections()
+
+    print("starting demo connecitons")
+
+    sidePosList = [ [1,0,0], [0,1,1], [1,2,2], [2,1,3]  ]
+
+    for tile in connectionList:
+        print(f"Looking at tile: {tile}")
+
+        # make center equal the tile
+        tileMatrix[1][1].forceCollapse(tile)
+
+        for side in sidePosList:
+            removeList = []
+            for secondary in connectionList[tile][side[2]]:
+                print(f"  connecting to {secondary} with side {side}")
+
+                # make the one to the left of center = tile
+                tileMatrix[side[0]][side[1]].forceCollapse(secondary)
+
+                myDisplay.createOutput(tileMatrix)
+                cv2.imshow("example", myDisplay.output)
+                k = cv2.waitKey()
+                if k == ord("n"):
+                    print("    deleting this connection")
+                    removeList.append(secondary)
+                if k == ord("p"):
+                    # lets go to the next tile
+                    break
+                if k == 27:
+                    print("[EXITING] - Exiting the program")
+                    print(connectionList)
+                    return connectionList
+
+            # reset the tile
+            tileMatrix[side[0]][side[1]].forceCollapse(60)  # just makes the tile blank
+
+            # remove what is needed to remove
+            for element in removeList:
+                connectionList[tile][0].remove(element)
+
+            if k == ord("p"):
+                # lets go to the next tile
+                break
+
+    print(connectionList)
+    return connectionList
 
 
 if __name__ == "__main__":
-    main()
-    generateConnections()
+    # main()
+    # generateConnections()
+
+    demoConnecitons()
