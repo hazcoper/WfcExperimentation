@@ -5,7 +5,8 @@ import numpy as np
 
 from multiprocessing import Pool
 
-BLANK_TILE = 6 # the index of the tile in the tile sheet that corresponds to the empty tile
+BLANK_TILE = 60 # the index of the tile in the tile sheet that corresponds to the empty tile
+TILESHEET_FILE = "subway-tilesheet-complex.png"
 
 
 class Display():
@@ -109,7 +110,7 @@ class Display():
             self.counter += 1
 
     def save(self, filename):
-        # change one color for another
+        # change one color for another from red to yellow
         self.output[np.all(self.output == (0, 0, 255), axis=-1)] = (0,215,255)
         
         cv2.imwrite(filename, self.output)
@@ -151,7 +152,6 @@ class Image():
 
 class Tile():
     def __init__(self, x, y, tileCount, name, imageID = None):
-        print(f"Creating tile with {[x,y]}, {name}")
         self.pos = [x,y]
 
         self.imageID = None if imageID == None else imageID   # the id that the tile has collapse to
@@ -172,7 +172,6 @@ class Tile():
         self.possibleList = []
         self.imageID = photoId
         self.isCollapsed = True
-
         print(f"      tile {self.name} has collapsed to {photoId}")
 
     def getPossibleList(self):
@@ -299,7 +298,7 @@ class Wfc():
         filterAmount = len(self.uncollapsedList[0].getPossibleList()) 
         possibleList = [x  for x in self.uncollapsedList if len(x.getPossibleList()) == filterAmount] # list with all the tiles that have the minimum entropy
 
-        print(f"In min collapse: filterAmount: {filterAmount} and possibleList: {possibleList}")
+        print(f"    In min collapse: filterAmount: {filterAmount} and possibleList: {possibleList}")
 
         choosenTile = self.uncollapsedList[0]      # choose the first tile from the uncollapsed list ( will always be the same )
         choosenTile = random.choice(possibleList)  # choose the tile with least entropy
@@ -449,10 +448,12 @@ class Wfc():
 
 def run(name):
     global tileMatrix
-    SIZEX = 20 # size in tiles of the final imgae
-    SIZEY = 20 # size in tiles of the final image
-    tileQuant = 7
-    myDisplay = Display(100,100, 3,3, SIZEX, SIZEY)
+    SIZEX = 3 # size in tiles of the final imgae
+    SIZEY = 3 # size in tiles of the final image
+    tileSheetXAmount = 8
+    tileSheetYAmount = 8 
+    tileQuant =  tileSheetXAmount * tileSheetYAmount
+    myDisplay = Display(100,100, tileSheetXAmount,tileSheetYAmount, SIZEX, SIZEY, TILESHEET_FILE)
     
     tileMatrix = None
 
