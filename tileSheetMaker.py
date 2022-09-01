@@ -103,8 +103,9 @@ CONFIG = {
     "tiles": generateVerticalCode() + generateLeftToUpCode() + generateConnectorCode()
 }
 
-OUTPUT_FILE = "subway.png"
-TILESHEET_FILE = "subway-tilesheet.png"
+OUTPUT_FILE = "subway-complex.png"
+TILESHEET_FILE = "subway-tilesheet-complex.png"
+BLANK_TILE = 60
 
 
 def main():
@@ -112,10 +113,6 @@ def main():
     wfc.load_config(CONFIG)
     wfc.create_tilesheet(TILESHEET_FILE)
 
-def show(image, imageName=""):
-    cv2.imshow(imageName, image)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
 
 def generateConnections():
     """
@@ -131,7 +128,7 @@ def generateConnections():
     sideList = {"left": [49, 0], "top": [0, 49], "right": [49, 99], "bottom": [99, 49]}
 
     # need to be able to iterate over all of the tiles
-    myDisplay = Display(100,100, 3,3, 10, 10)
+    myDisplay = Display(100,100, 8,8, 10, 10, TILESHEET_FILE)
     numberOfTile = myDisplay.xAmount * myDisplay.yAmount
 
     outputDict = {}
@@ -141,11 +138,11 @@ def generateConnections():
         tile = myDisplay.indexGetPart(index)
         
         #check to see if image is black
-        if index > 5:
+        if index >= BLANK_TILE:
             print("THIS TILE IS BLACKKKK")
             continue
 
-        cv2.imshow("main", tile)
+        # cv2.imshow("main", tile)
         connections = [[], [], [], []] # left top right bottom
 
         left1 = tile[sideList["left"][0],sideList["left"][1]]
@@ -160,11 +157,14 @@ def generateConnections():
 
 
             #check to see if image is black
-            if index2 > 5:
+            if index2 >= BLANK_TILE:
                 print("THIS TILE IS BLACKKKK")
                 continue
 
-            cv2.imshow("compare", tile2)
+            # check to see if its a connector (they cant connect to one another)
+            if index > 31 and index2 > 31:
+                # means that it is a connector comparing to another connector
+                continue
 
 
             left2 = tile2[sideList["left"][0],sideList["left"][1]]
@@ -172,10 +172,10 @@ def generateConnections():
             right2 = tile2[sideList["right"][0],sideList["right"][1]]
             bottom2 = tile2[sideList["bottom"][0],sideList["bottom"][1]]
 
-            print(left1, left2)
-            print(top1, top2)
-            print(right1, right2)
-            print(bottom1, bottom2)
+            # print(left1, left2)
+            # print(top1, top2)
+            # print(right1, right2)
+            # print(bottom1, bottom2)
 
             # if any of the sides are equal, it connects
             if np.all(left1 == right2):
@@ -199,7 +199,7 @@ def generateConnections():
                 connections[3].append(index2)
                 print("      connects bottom")
 
-            cv2.waitKey()
+            # cv2.waitKey()
             
         print("This is the connections ", connections)
         outputDict[index] = connections
