@@ -167,12 +167,20 @@ class Tile():
     def collapse(self, photoId):
         
         if photoId not in self.possibleList:
-            print(f"      tile {self.name} cant collapse to {photoId}")
+            print(f"      tile {self.name} cant collapse to {photoId}   ({self.possibleList})")
 
         self.possibleList = []
         self.imageID = photoId
         self.isCollapsed = True
         print(f"      tile {self.name} has collapsed to {photoId}")
+
+    def forceCollapse(self, photoId):
+        """
+        used just for debug purposes, forces a photoId to a tile without checking anything
+        """
+        self.possibleList = []
+        self.imageID = photoId
+        self.isCollapsed = True
 
     def getPossibleList(self):
         return self.possibleList
@@ -320,9 +328,6 @@ class Wfc():
         print(f"    choose: {choosenTile} id: {choosenTile.possibleList}")
 
 
-    
-
-
     # will receive a Tile, and collapse if it is ready to be collapsed
     # update the imageID, and update the neighbors
     def collapseTile(self, tile):
@@ -354,6 +359,7 @@ class Wfc():
 
         for nTile in neightbourList:
             print(f"      checking {nTile}")
+            
             if nTile[0].isCollapsed:
                 #ignore tiles that have already been collapse
                 print("        tile is already collapsed")
@@ -373,7 +379,9 @@ class Wfc():
     # will update the imageID of the received tile to account for the change
     def updateTile(self, tile, imageID, side):
 
-        tile.updatePossibleList(self.Image.getPossibleId(imageID, side)) 
+        possibleConnectionsList = self.Image.getPossibleId(imageID, side) # what can i connect to the side SIDE of a tile that has PHOTOID 
+        print(f"        This is what I can connect the side {possibleConnectionsList}")
+        tile.updatePossibleList(possibleConnectionsList) 
         print(f"        n: {tile} has now {tile.getPossibleList()}")
         if len(tile.getPossibleList()) == 1 and tile not in self.toCollapse:
             # means that it is ready to be collapsed, lets add to the list
