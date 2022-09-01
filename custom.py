@@ -205,8 +205,15 @@ class Tile():
         """
 
 
-        print(f"this is prepare random collapse, and this are the options {self.possibleList}")
-        self.possibleList = [random.choice(self.possibleList)]
+        print(f"      this is prepare random collapse, and this are the options {self.possibleList}")
+        
+        filteredList = [x for x in self.possibleList if x < 24]
+        
+        if len(filteredList) == 0:
+            filteredList = self.possibleList
+        
+        print("This is the filtered list {filteredList}")
+        self.possibleList = [random.choice(filteredList)]
 
     def __gt__(self, other):
         amount1 = len(self.possibleList) if not self.isCollapsed else 0 
