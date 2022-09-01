@@ -76,3 +76,15 @@ class ColorGenerator():
             print("made this palette: ", palette)
 
 
+if __name__ == '__main__':
+
+    # will give out all of the colors for a given palette
+
+    myGenerate = ColorGenerator()
+    myGenerate.setRandomPalette()
+
+    colorList = []
+    for color in myGenerate.paletteList[myGenerate.selectedPalette]:
+        colorList.append( color )
+    
+    print(colorList)
