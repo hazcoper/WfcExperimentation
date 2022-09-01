@@ -9,6 +9,8 @@ import os
 
 """
 Script that will indentify the shapes and randomize their color
+
+used at the beggining when the program just generated all the shapes with the same color
 """
 
 
