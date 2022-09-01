@@ -4,68 +4,103 @@ import numpy as np
 import cv2
 import os
 
+def generateCode(modelDict, tileList):
+    """
+    given the baseDict, it will return a list with all the dictionaries created using the names in the tileList
+    """
 
-verticalList = [
+    tileDictList = []   
+    for tile in tileList:
+        tempDict = modelDict.copy()
+        tempDict["filename"] = tile        
+        tileDictList.append(tempDict)
 
-    ".tiles/complexSubway/0_vertical.png",
-    ".tiles/complexSubway/1_vertical.png",
-    ".tiles/complexSubway/2_vertical.png",
-    ".tiles/complexSubway/3_vertical.png",
 
-]
+    return tileDictList
 
-leftToUp = [
+def generateVerticalCode():
+    """
+    Generate the dictionary necessary for the tileSheetMaker generate the tilesheet
+    just the part for the vertical tiles
+    """
+    verticalList = [
 
-    ".tiles/complexSubway/0_leftToUp.png",
-    ".tiles/complexSubway/1_leftToUp.png",
-    ".tiles/complexSubway/2_leftToUp.png",
-    ".tiles/complexSubway/3_leftToUp.png",
+        "tiles/complexSubway/0_vertical.png",
+        "tiles/complexSubway/1_vertical.png",
+        "tiles/complexSubway/2_vertical.png",
+        "tiles/complexSubway/3_vertical.png",
 
-]
+    ]
 
-folderName = "tiles/complexSubway"
-connectorNameList = [x for x in os.listdir(folderName) if "connector" in x and ]
-print(connectorNameList)
-exit( )
-connectorList = {
-    ".tiles/complexSubway/0_leftToUp.png",
-    ".tiles/complexSubway/1_leftToUp.png",
-    ".tiles/complexSubway/2_leftToUp.png",
-    ".tiles/complexSubway/3_leftToUp.png",
 
-}
+    modelDict = {
+        "filename": None,
+        "rotate90": True,
+        "rotate180": False,
+        "rotate270": False,
+        "flip_vertical": False,
+        "flip_horizontal": False,
+    }
+
+    return generateCode(modelDict, verticalList)
+
+def generateLeftToUpCode():
+    """
+    Generate the dictionary necessary for the tileSheetMaker generate the tilesheet
+    just the part for the left to up tiles
+    """
+
+
+    leftToUp = [
+
+        "tiles/complexSubway/0_leftToUp.png",
+        "tiles/complexSubway/1_leftToUp.png",
+        "tiles/complexSubway/2_leftToUp.png",
+        "tiles/complexSubway/3_leftToUp.png",
+
+    ]
+
+    modelDict = {
+        "filename": None,
+        "rotate90": True,
+        "rotate180": True,
+        "rotate270": True,
+        "flip_vertical": False,
+        "flip_horizontal": False,
+    }
+
+    return generateCode(modelDict, leftToUp)
+
+def generateConnectorCode():
+
+
+
+    folderName = "tiles/complexSubway"
+    connectorNameList = [x for x in os.listdir(folderName) if "connector" in x and "_" in x]
+    connectorList = [
+
+        f"tiles/complexSubway/{con}" for con in connectorNameList
+    ]
+
+    modelDict = {
+
+        "filename":None,
+        "rotate90":False,
+        "rotate180":False,
+        "rotate270":False,
+        "flip_vertical":False,
+        "flip_horizontal":False
+
+    }
+
+    return generateCode(modelDict, connectorList)
 
 
 CONFIG = {
     "clean_edges": False,
     "overlapping": False,
     "color_divider": 1,
-    "tiles": [
-        {
-            "filename": "./tiles/newSubway/vertical.png",
-            "rotate90": True,
-            "rotate180": False,
-            "rotate270": False,
-            "flip_vertical": False,
-            "flip_horizontal": False,
-        },
-        {
-            "filename": "./tiles/newSubway/leftToUp.png",
-            "rotate90": True,
-            "rotate180": True,
-            "rotate270": True,
-            "flip_vertical": False,
-            "flip_horizontal": False,
-        },
-        {
-            "filename": "./tiles/newSubway/blank.png",
-            "rotate90": True,
-            "rotate180": True,
-            "rotate270": True,
-            "flip_vertical": False,
-            "flip_horizontal": False,
-        },
-    ]
+    "tiles": generateVerticalCode() + generateLeftToUpCode() + generateConnectorCode()
 }
 
 OUTPUT_FILE = "subway.png"
