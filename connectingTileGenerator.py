@@ -162,8 +162,11 @@ def generateBaseTiles():
 
 # cv2.waitKey()
 folder = "tiles/complexSubway"
-colorList = [[86, 50, 178, 255], [125, 212, 252, 255], [117, 170, 49, 255], [68, 239, 162, 255]]
+colorList = [[86, 50, 178], [125, 212, 252], [117, 170, 49], [68, 239, 162]]
+colorList = [[255, 178, 61], [218, 237, 255], [48, 184, 255], [66, 36, 255]]
 
+for color in colorList:
+    color.append(255) #  add the alpha channel
 
 generateBaseTiles()
 generateConnectors()
