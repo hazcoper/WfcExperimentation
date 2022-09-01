@@ -167,7 +167,7 @@ class Tile():
     def collapse(self, photoId):
         
         if photoId not in self.possibleList:
-            print(f"      tile {self.name} cant collapse to {photoId} ({possibleId})")
+            print(f"      tile {self.name} cant collapse to {photoId}")
 
         self.possibleList = []
         self.imageID = photoId
